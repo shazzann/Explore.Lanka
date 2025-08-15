@@ -1,0 +1,42 @@
+/* React Flow styles for trip planner */
+@import '@xyflow/react/dist/style.css';
+
+.react-flow {
+  background-color: #f8fafc;
+}
+
+.react-flow__node {
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.react-flow__node:hover {
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.react-flow__edge {
+  stroke-width: 2;
+}
+
+.react-flow__controls {
+  background: rgba(255, 255, 255, 0.9);
+  border-radius: 6px;
+}
+
+.react-flow__controls-button {
+  border-radius: 4px;
+}
+
+.react-flow__background {
+  background-color: #f1f5f9;
+}
+
+/* Ensure React Flow container is visible */
+.react-flow__renderer {
+  width: 100% !important;
+  height: 100% !important;
+}
+
+.react-flow__viewport {
+  transform-origin: 0 0;
+}
