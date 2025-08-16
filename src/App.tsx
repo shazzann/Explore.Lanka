@@ -16,6 +16,7 @@ import Profile from "./pages/Profile";
 import TravelAssistant from "./pages/TravelAssistant";
 import About from "./pages/About";
 import Contact from "./pages/Contact";
+import ScrollToTop from "./components/ScrollToTop";
 
 // Create a QueryClient with optimized settings
 const queryClient = new QueryClient({
@@ -95,6 +96,7 @@ const App = () => (
         <Toaster />
         <Sonner />
         <BrowserRouter>
+          <ScrollToTop />
           <AppRoutes />
         </BrowserRouter>
       </TooltipProvider>
