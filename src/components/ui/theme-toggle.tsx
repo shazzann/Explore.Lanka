@@ -29,11 +29,16 @@ const ThemeToggle: React.FC = () => {
     const savedTheme = localStorage.getItem('theme');
     const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
     
-    const shouldBeDark = savedTheme === 'dark' || (!savedTheme && prefersDark);
+    // Default to dark mode for new users if no saved preference
+    const shouldBeDark = savedTheme === 'dark' || (!savedTheme && (prefersDark || true));
     
     setIsDark(shouldBeDark);
     if (shouldBeDark) {
       document.documentElement.classList.add('dark');
+      // Set dark mode as default for new users
+      if (!savedTheme) {
+        localStorage.setItem('theme', 'dark');
+      }
     } else {
       document.documentElement.classList.remove('dark');
     }
