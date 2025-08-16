@@ -139,12 +139,15 @@ export function useProfile() {
       
       if (error) throw error;
     },
-    onSuccess: () => {
+    onSuccess: async () => {
       toast({
         title: 'Account deleted',
         description: 'Your account and all data have been permanently deleted.',
       });
-      // User will be automatically signed out due to account deletion
+      
+      // Sign out user and redirect to home page
+      await supabase.auth.signOut();
+      window.location.href = '/';
     },
     onError: (error: any) => {
       toast({
