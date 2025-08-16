@@ -95,7 +95,12 @@ export const useLocations = () => {
         throw new Error('You have already unlocked this location');
       }
       
-      console.log('About to unlock location for user:', user.id, 'location:', locationId, 'points:', location.points || 0);
+      console.log('🔐 UNLOCK ATTEMPT:', {
+        userId: user.id,
+        locationId,
+        points: location.points || 0,
+        timestamp: new Date().toISOString()
+      });
       
       // Record that the user unlocked this location
       const { error: unlockError } = await supabase
@@ -106,23 +111,16 @@ export const useLocations = () => {
           points_earned: location.points || 0
         });
         
-      if (unlockError) throw unlockError;
-      
-      console.log('About to award points for user:', user.id, 'location:', locationId, 'points:', location.points || 0);
-      
-      // Update the user's profile with the earned points
-      const { error: updateError } = await supabase.rpc('increment_profile_stats', {
-        user_id_param: user.id,
-        points_param: location.points || 0,
-        places_unlocked_param: 1
-      });
-      
-      if (updateError) {
-        console.error('Error updating profile stats:', updateError);
-        throw updateError;
+      if (unlockError) {
+        console.error('❌ UNLOCK FAILED:', unlockError);
+        throw unlockError;
       }
       
-      console.log('Profile stats updated successfully for user:', user.id, 'points added:', location.points || 0);
+      console.log('✅ UNLOCK SUCCESS:', {
+        userId: user.id,
+        locationId,
+        timestamp: new Date().toISOString()
+      });
       
       // Return the updated location with unlocked status
       return {
@@ -158,10 +156,13 @@ export const useLocations = () => {
   
   // Function to unlock a location
   const unlockLocation = async (locationId: string): Promise<ExtendedLocation | null> => {
+    console.log('🚀 unlockLocation called with:', locationId);
     try {
-      return await unlockMutation.mutateAsync(locationId);
+      const result = await unlockMutation.mutateAsync(locationId);
+      console.log('🎯 unlockLocation result:', result);
+      return result;
     } catch (error) {
-      console.error("Error in unlockLocation:", error);
+      console.error("❌ Error in unlockLocation:", error);
       return null;
     }
   };

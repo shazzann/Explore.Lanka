@@ -16,6 +16,20 @@ export const useLeaderboard = () => {
 
   // Set up real-time subscriptions for instant updates
   useEffect(() => {
+    // Use a debounce mechanism to prevent multiple rapid invalidations
+    let debounceTimer: NodeJS.Timeout | null = null;
+    
+    const debouncedInvalidate = () => {
+      if (debounceTimer) {
+        clearTimeout(debounceTimer);
+      }
+      
+      debounceTimer = setTimeout(() => {
+        console.log('Debounced leaderboard invalidation');
+        queryClient.invalidateQueries({ queryKey: ['leaderboard'] });
+      }, 300); // 300ms debounce time
+    };
+    
     // Listen to profiles table changes (this is where points are updated)
     const profilesChannel = supabase
       .channel('profiles-changes')
@@ -28,7 +42,7 @@ export const useLeaderboard = () => {
         },
         (payload) => {
           console.log('Profile points updated, refreshing leaderboard:', payload);
-          queryClient.invalidateQueries({ queryKey: ['leaderboard'] });
+          debouncedInvalidate();
         }
       )
       .subscribe();
@@ -62,7 +76,7 @@ export const useLeaderboard = () => {
         },
         (payload) => {
           console.log('New point activity, refreshing leaderboard:', payload);
-          queryClient.invalidateQueries({ queryKey: ['leaderboard'] });
+          debouncedInvalidate();
         }
       )
       .subscribe();
@@ -79,7 +93,7 @@ export const useLeaderboard = () => {
         },
         (payload) => {
           console.log('New location unlocked, refreshing leaderboard:', payload);
-          queryClient.invalidateQueries({ queryKey: ['leaderboard'] });
+          debouncedInvalidate();
         }
       )
       .subscribe();

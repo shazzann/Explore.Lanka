@@ -27,10 +27,8 @@ const Map: React.FC<MapProps> = ({ onLocationSelect }) => {
       const unlockedLocation = await unlockLocation(locationId);
       if (unlockedLocation) {
         handleLocationSelect(unlockedLocation);
-        
-        // Ensure leaderboard is immediately refreshed after a successful unlock
-        queryClient.invalidateQueries({ queryKey: ['leaderboard'] });
-        console.log("Leaderboard data invalidated after location unlock");
+        // The leaderboard is already invalidated in the unlockLocation function
+        // No need to invalidate it again here to prevent duplicate points
       }
       return unlockedLocation;
     } catch (error) {
