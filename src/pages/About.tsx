@@ -45,7 +45,8 @@ const About = () => {
                 </div>
                 <div className="relative">
                   <div className="aspect-square bg-gradient-to-br from-primary/20 to-secondary/20 rounded-2xl p-8 flex items-center justify-center">
-                    <Globe className="h-32 w-32 text-primary" />
+                    {/* <Globe className="h-32 w-32 text-primary" /> */}
+                    <img src="/logo.png" alt="ExploreLanka Logo" className="h-56 w-56 object-contain" />
                   </div>
                 </div>
               </div>
