@@ -6,7 +6,7 @@ import Footer from '@/components/Footer';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
-import { useToast } from '@/components/ui/use-toast';
+import { useToast } from '@/hooks/use-toast';
 import { Location } from '@/components/LocationCard';
 import EditLocationForm from '@/components/admin/EditLocationForm';
 import EditHotelForm from '@/components/admin/EditHotelForm';
@@ -17,6 +17,7 @@ import UsersTable from '@/components/admin/UsersTable';
 import LocationsTab from '@/components/admin/LocationsTab';
 import HotelsTab from '@/components/admin/HotelsTab';
 import PhotoLikesTab from '@/components/admin/PhotoLikesTab';
+import PhotoCommentsTab from '@/components/admin/PhotoCommentsTab';
 
 const AdminDashboard = () => {
   const { isAdmin, isLoading } = useAuth();
@@ -325,6 +326,7 @@ const AdminDashboard = () => {
             <TabsTrigger value="hotels">Hotels</TabsTrigger>
             <TabsTrigger value="users">Users</TabsTrigger>
             <TabsTrigger value="photo-likes">Photo Likes</TabsTrigger>
+            <TabsTrigger value="photo-comments">Comments</TabsTrigger>
           </TabsList>
           
           <TabsContent value="overview">
@@ -368,6 +370,10 @@ const AdminDashboard = () => {
           
           <TabsContent value="photo-likes">
             <PhotoLikesTab />
+          </TabsContent>
+          
+          <TabsContent value="photo-comments">
+            <PhotoCommentsTab />
           </TabsContent>
         </Tabs>
       </div>
