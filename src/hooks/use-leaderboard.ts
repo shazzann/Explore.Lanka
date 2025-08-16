@@ -45,7 +45,9 @@ export const useLeaderboard = () => {
           debouncedInvalidate();
         }
       )
-      .subscribe();
+      .subscribe((status) => {
+        console.log('Profiles channel subscription status:', status);
+      });
 
     // Listen to photo_likes table changes for immediate point updates
     const likesChannel = supabase
@@ -59,10 +61,13 @@ export const useLeaderboard = () => {
         },
         (payload) => {
           console.log('Photo like changed, this should trigger profile update:', payload);
-          // The trigger will update profiles table, which will trigger the profilesChannel above
+          // Immediately invalidate on photo likes changes
+          debouncedInvalidate();
         }
       )
-      .subscribe();
+      .subscribe((status) => {
+        console.log('Photo likes channel subscription status:', status);
+      });
 
     // Listen to point activities for real-time leaderboard updates
     const pointActivitiesChannel = supabase
