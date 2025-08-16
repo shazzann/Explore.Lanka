@@ -40,7 +40,6 @@ export const usePhotoLikes = () => {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['photos'] });
-      queryClient.invalidateQueries({ queryKey: ['leaderboard'] });
     },
     onError: (error: any) => {
       toast({
