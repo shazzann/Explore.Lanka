@@ -23,6 +23,7 @@ export const MapMarkers: React.FC<MapMarkersProps> = ({
   const markersRef = useRef<{ [key: string]: mapboxgl.Marker }>({});
   const hotelMarkersRef = useRef<{ [key: string]: mapboxgl.Marker }>({});
   const [userCoords, setUserCoords] = useState<{ lat: number, lng: number } | null>(null);
+  const [unlockingStates, setUnlockingStates] = useState<{ [key: string]: boolean }>({});
   const { user } = useAuth();
   const { toast } = useToast();
   const { hotels } = useHotels();
@@ -75,9 +76,9 @@ export const MapMarkers: React.FC<MapMarkersProps> = ({
     
     console.log(`Distance to location: ${distance.toFixed(3)} km`);
     
-    // For testing/development purposes, increase the distance to 5.0 km (easier to test)
-    // For production, set this back to 0.5 km (500 meters)
-    const unlockDistance = 5.0; // 5 km for testing, should be 0.5 for production
+    // Set unlock distance - adjust this value to change the radius
+    // 0.5 = 500 meters, 1.0 = 1 kilometer, etc.
+    const unlockDistance = 0.5; // Change this value to adjust unlock radius
     const isNear = distance <= unlockDistance;
     
     console.log("Is user near location?", isNear);
@@ -312,13 +313,47 @@ export const MapMarkers: React.FC<MapMarkersProps> = ({
         }
         
         // Handle unlocking for authenticated users (separate from selection)
-        if (user && !location.unlocked) {
-          // Get updated position before attempting to unlock
-          getCurrentPosition();
+        if (user && !location.unlocked && !unlockingStates[location.id]) {
+          // Check if already unlocking this location
+          setUnlockingStates(prev => ({ ...prev, [location.id]: true }));
           
-          // Wait a moment for the position to update
-          setTimeout(async () => {
-            // Check if user is near the location
+          try {
+            // Ensure we have user coordinates before checking proximity
+            if (!userCoords) {
+              console.log("No user coordinates available, getting position...");
+              try {
+                await new Promise<void>((resolve, reject) => {
+                  if (navigator.geolocation) {
+                    navigator.geolocation.getCurrentPosition(
+                      (position) => {
+                        console.log("Got user position:", position.coords.latitude, position.coords.longitude);
+                        setUserCoords({
+                          lat: position.coords.latitude,
+                          lng: position.coords.longitude
+                        });
+                        resolve();
+                      },
+                      (error) => {
+                        console.error("Error getting location:", error);
+                        reject(error);
+                      },
+                      { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
+                    );
+                  } else {
+                    reject(new Error("Geolocation not supported"));
+                  }
+                });
+              } catch (error) {
+                toast({
+                  title: "Location Error",
+                  description: "Could not access your location. Please enable GPS and try again.",
+                  variant: "destructive",
+                });
+                return;
+              }
+            }
+            
+            // Now check if user is near the location
             const isNear = isUserNearLocation(location.latitude, location.longitude);
             console.log(`Attempting to unlock location: ${location.name}, isNear: ${isNear}`);
             
@@ -329,8 +364,6 @@ export const MapMarkers: React.FC<MapMarkersProps> = ({
               console.log("Distance:", calculateDistance(
                 userCoords.lat, userCoords.lng, location.latitude, location.longitude
               ));
-            } else {
-              console.log("No user coordinates available yet");
             }
             
             if (!isNear) {
@@ -342,27 +375,33 @@ export const MapMarkers: React.FC<MapMarkersProps> = ({
               return;
             }
             
-            try {
-              const unlockedLocation = await onLocationUnlock(location.id);
-              if (unlockedLocation) {
-                toast({
-                  title: "Success!",
-                  description: `You've unlocked ${location.name}!`,
-                });
-              }
-            } catch (error) {
-              console.error("Error unlocking location:", error);
+            const unlockedLocation = await onLocationUnlock(location.id);
+            if (unlockedLocation) {
               toast({
-                title: "Error",
-                description: "Failed to unlock location. Please try again.",
-                variant: "destructive",
+                title: "Success!",
+                description: `You've unlocked ${location.name}!`,
               });
             }
-          }, 1000); // Allow 1 second for position to update
+          } catch (error) {
+            console.error("Error unlocking location:", error);
+            toast({
+              title: "Error",
+              description: "Failed to unlock location. Please try again.",
+              variant: "destructive",
+            });
+          } finally {
+            setUnlockingStates(prev => ({ ...prev, [location.id]: false }));
+          }
         } else if (!user && !location.unlocked) {
           toast({
             title: "Sign in required",
             description: "You need to sign in to unlock locations.",
+            variant: "destructive",
+          });
+        } else if (unlockingStates[location.id]) {
+          toast({
+            title: "Please wait",
+            description: "This location is already being unlocked.",
             variant: "destructive",
           });
         }
