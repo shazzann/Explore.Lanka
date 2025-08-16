@@ -17,7 +17,7 @@ import TravelAssistant from "./pages/TravelAssistant";
 import About from "./pages/About";
 import Contact from "./pages/Contact";
 import ScrollToTop from "./components/ScrollToTop";
-
+import { SpeedInsights } from '@vercel/speed-insights/next';
 // Create a QueryClient with optimized settings
 const queryClient = new QueryClient({
   defaultOptions: {
