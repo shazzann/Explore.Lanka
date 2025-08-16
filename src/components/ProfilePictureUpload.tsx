@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Camera, Upload, Loader2 } from 'lucide-react';
+import { Camera, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/components/ui/use-toast';
 import { supabase } from '@/integrations/supabase/client';
@@ -14,7 +14,41 @@ const ProfilePictureUpload: React.FC<ProfilePictureUploadProps> = ({ onUploadCom
   const { user } = useAuth();
   const { toast } = useToast();
 
-  const handleFileUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
+  const resizeImage = (file: File, maxWidth: number = 400, quality: number = 0.8): Promise<Blob> => {
+    return new Promise((resolve) => {
+      const canvas = document.createElement('canvas');
+      const ctx = canvas.getContext('2d');
+      const img = new Image();
+
+      img.onload = () => {
+        // Calculate new dimensions while maintaining aspect ratio
+        const { width, height } = img;
+        const aspectRatio = width / height;
+        
+        let newWidth = maxWidth;
+        let newHeight = maxWidth / aspectRatio;
+        
+        if (newHeight > maxWidth) {
+          newHeight = maxWidth;
+          newWidth = maxWidth * aspectRatio;
+        }
+
+        canvas.width = newWidth;
+        canvas.height = newHeight;
+
+        // Draw and resize image
+        ctx?.drawImage(img, 0, 0, newWidth, newHeight);
+
+        canvas.toBlob((blob) => {
+          if (blob) resolve(blob);
+        }, 'image/jpeg', quality);
+      };
+
+      img.src = URL.createObjectURL(file);
+    });
+  };
+
+  const handleFileSelect = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (!file || !user) return;
 
@@ -41,15 +75,18 @@ const ProfilePictureUpload: React.FC<ProfilePictureUploadProps> = ({ onUploadCom
     setIsUploading(true);
 
     try {
+      // Resize the image
+      const resizedBlob = await resizeImage(file);
+      
       const fileExt = file.name.split('.').pop();
       const fileName = `${user.id}/avatar.${fileExt}`;
 
-      // Upload file to Supabase storage
+      // Upload resized file to Supabase storage
       const { error: uploadError } = await supabase.storage
         .from('avatars')
-        .upload(fileName, file, { 
+        .upload(fileName, resizedBlob, { 
           upsert: true,
-          contentType: file.type 
+          contentType: 'image/jpeg'
         });
 
       if (uploadError) throw uploadError;
@@ -85,8 +122,9 @@ const ProfilePictureUpload: React.FC<ProfilePictureUploadProps> = ({ onUploadCom
       });
     } finally {
       setIsUploading(false);
-      event.target.value = '';
     }
+
+    event.target.value = '';
   };
 
   return (
@@ -94,7 +132,7 @@ const ProfilePictureUpload: React.FC<ProfilePictureUploadProps> = ({ onUploadCom
       <input
         type="file"
         accept="image/*"
-        onChange={handleFileUpload}
+        onChange={handleFileSelect}
         className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
         disabled={isUploading}
         id="avatar-upload"
