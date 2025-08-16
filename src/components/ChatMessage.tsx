@@ -30,12 +30,12 @@ const ChatMessage: React.FC<ChatMessageProps> = ({ message }) => {
       <div className={`flex-1 max-w-[80%] ${
         message.isUser ? 'text-right' : 'text-left'
       }`}>
-        <div className={`inline-block p-3 rounded-lg ${
+        <div className={`inline-block p-3 rounded-lg break-words ${
           message.isUser
             ? 'bg-lanka-blue text-white rounded-br-sm'
             : 'bg-muted text-foreground rounded-bl-sm'
         }`}>
-          <p className="text-sm whitespace-pre-line">{message.text}</p>
+          <p className="text-sm whitespace-pre-line break-words overflow-wrap-anywhere">{message.text}</p>
         </div>
         <p className="text-xs text-muted-foreground mt-1">
           {message.timestamp.toLocaleTimeString()}
